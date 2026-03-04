@@ -1,0 +1,40 @@
+import { kv } from '@vercel/kv';
+
+export default async function handler(req, res) {
+  // Allow the demo app to call this from the browser
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    // Get ordered list of course IDs
+    const courseIds = await kv.get('course_ids') || [];
+
+    if (courseIds.length === 0) {
+      return res.status(200).json({ courses: [] });
+    }
+
+    // Fetch all courses in parallel
+    const courseStrings = await Promise.all(
+      courseIds.map(id => kv.get(`course:${id}`))
+    );
+
+    const courses = courseStrings
+      .filter(Boolean)
+      .map(c => typeof c === 'string' ? JSON.parse(c) : c);
+
+    return res.status(200).json({ courses });
+
+  } catch (err) {
+    console.error('Courses fetch error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
