@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flyte Health × dialogEDU — Integration Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(160deg, #1a1a2e 0%, #2d1b3d 60%, #1a2a1a 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 20px 48px;
+      gap: 28px;
+    }
+
+    /* Demo title */
+    .demo-title { text-align: center; }
+    .demo-title h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 24px; color: white; letter-spacing: -0.01em;
+    }
+    .demo-title p { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 5px; }
+
+    /* Phone shell */
+    .phone {
+      width: 390px;
+      height: 780px;
+      background: #F5F8FA;
+      border-radius: 44px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 12px #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: #0B1F3A;
+      padding: 14px 24px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .status-time { font-size: 15px; font-weight: 600; color: white; letter-spacing: 0.02em; }
+    .status-icons { font-size: 12px; color: white; display: flex; gap: 6px; }
+
+    /* App header */
+    .app-header { background: #0B1F3A; padding: 0 24px 20px; flex-shrink: 0; }
+    .header-greeting {
+      font-size: 13px; color: rgba(255,255,255,0.5);
+      letter-spacing: 0.04em; text-transform: uppercase; font-weight: 500; margin-bottom: 2px;
+    }
+    .header-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px; color: white; line-height: 1.1; margin-bottom: 16px;
+    }
+    .header-stats {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .stat-ring-wrap { position: relative; width: 48px; height: 48px; flex-shrink: 0; }
+    .stat-ring-wrap svg { transform: rotate(-90deg); display: block; }
+    .stat-ring-label {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: white;
+    }
+    .stat-text h4 { font-size: 13px; font-weight: 600; color: white; margin-bottom: 2px; }
+    .stat-text p { font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.4; }
+
+    /* Scroll area */
+    .scroll-area {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* Section */
+    .section { padding: 20px 20px 0; }
+    .section-header {
+      display: flex; justify-content: space-between;
+      align-items: baseline; margin-bottom: 14px;
+    }
+    .section-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: #0B1F3A; }
+    .section-count {
+      font-size: 11px; font-weight: 600; color: #7A8FA0;
+      background: #EEF2F5; padding: 3px 10px; border-radius: 20px;
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 48px 20px; text-align: center; gap: 10px;
+    }
+    .empty-icon { font-size: 40px; opacity: 0.3; }
+    .empty-title { font-size: 15px; font-weight: 600; color: #3D5166; }
+    .empty-sub { font-size: 12px; color: #7A8FA0; line-height: 1.5; max-width: 220px; }
+
+    /* Course cards */
+    .courses-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; }
+
+    .course-card {
+      background: white; border-radius: 18px; padding: 16px;
+      box-shadow: 0 2px 12px rgba(11,31,58,0.07);
+      border: 1.5px solid transparent;
+      position: relative; overflow: hidden;
+      animation: fadeSlideIn 0.4s ease both;
+    }
+    .course-card.is-new {
+      border-color: #7C5CBF;
+      animation: springIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes springIn {
+      from { opacity: 0; transform: translateY(-16px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .new-badge {
+      position: absolute; top: 12px; right: 12px;
+      background: #7C5CBF; color: white;
+      font-size: 9px; font-weight: 700;
+      padding: 3px 8px; border-radius: 20px;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      animation: pulse 2s infinite;
+    }
+    .card-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+    .card-icon {
+      width: 46px; height: 46px; border-radius: 14px; background: #EEF2F5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; flex-shrink: 0;
+    }
+    .card-meta { flex: 1; min-width: 0; }
+    .card-cat { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .card-title { font-size: 14px; font-weight: 600; color: #0B1F3A; line-height: 1.35; margin-bottom: 4px; }
+    .card-desc {
+      font-size: 11px; color: #7A8FA0; line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card-desc p { margin: 0; }
+    .card-footer { display: flex; align-items: center; justify-content: space-between; }
+    .card-stats { display: flex; gap: 12px; }
+    .card-stat { font-size: 11px; color: #7A8FA0; }
+    .card-tag { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      background: white; border-top: 1px solid #EEF2F5;
+      padding: 10px 0 18px; display: flex; justify-content: space-around; flex-shrink: 0;
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 16px; cursor: pointer; }
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .nav-label { font-size: 10px; font-weight: 500; }
+    .nav-item.active .nav-icon, .nav-item.active .nav-label { color: #0D7C7C; }
+    .nav-item:not(.active) .nav-icon, .nav-item:not(.active) .nav-label { color: #C5D0DA; }
+    .nav-dot { width: 4px; height: 4px; background: #0D7C7C; border-radius: 50%; margin: 0 auto; }
+
+    /* Toast */
+    .toast {
+      position: absolute; top: 148px; left: 16px; right: 16px;
+      background: #0B1F3A; border: 1px solid rgba(255,255,255,0.12);
+      border-left: 3px solid #1A9E9E; border-radius: 12px; padding: 10px 14px;
+      z-index: 50; display: flex; align-items: center; gap: 10px;
+      animation: toastIn 0.3s ease forwards;
+    }
+    .toast.hiding { animation: toastOut 0.3s ease forwards; }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
+    .toast-dot { width: 8px; height: 8px; background: #1A9E9E; border-radius: 50%; flex-shrink: 0; animation: pulse 1s infinite; }
+    .toast-text { font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5; }
+    .toast-text strong { color: white; font-weight: 600; }
+    .toast-text em { color: #C8EFEF; font-style: normal; }
+
+    /* Demo controls */
+    .demo-controls { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .demo-label {
+      font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.3);
+      text-transform: uppercase; letter-spacing: 0.1em; text-align: center;
+    }
+    .demo-btn {
+      background: #1A9E9E; color: white; border: none;
+      border-radius: 30px; padding: 13px 32px;
+      font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+      cursor: pointer; box-shadow: 0 8px 30px rgba(13,124,124,0.45);
+      transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
+    }
+    .demo-btn:hover:not(:disabled) {
+      background: #0B9090; transform: translateY(-2px);
+      box-shadow: 0 12px 36px rgba(13,124,124,0.55);
+    }
+    .demo-btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+    .demo-btn.loading { background: #3D5166; box-shadow: none; }
+    .spinner {
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.3); border-top-color: white;
+      border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="demo-title">
+    <h1>Flyte Health × dialogEDU</h1>
+    <p>LMS as source of truth — courses sync to the mobile app</p>
+  </div>
+
+  <div class="phone">
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="status-time" id="clock">--:--</span>
+      <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
+    </div>
+
+    <!-- App header -->
+    <div class="app-header">
+      <div class="header-greeting">Good morning</div>
+      <div class="header-name">Your Learning Path</div>
+      <div class="header-stats">
+        <div class="stat-ring-wrap">
+          <svg width="48" height="48" viewBox="0 0 48 48" id="progress-ring">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+            <circle cx="24" cy="24" r="20" fill="none" stroke="#1A9E9E" stroke-width="4"
+              stroke-dasharray="125.66" stroke-dashoffset="125.66" stroke-linecap="round"
+              id="progress-arc"/>
+          </svg>
+          <div class="stat-ring-label" id="progress-pct">0%</div>
+        </div>
+        <div class="stat-text">
+          <h4 id="stat-title">No courses loaded yet</h4>
+          <p id="stat-sub">Fetch from LMS to get started.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast" style="display:none;">
+      <div class="toast-dot"></div>
+      <div class="toast-text" id="toast-text"></div>
+    </div>
+
+    <!-- Scroll area -->
+    <div class="scroll-area" id="scroll-area">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title">All Courses</div>
+          <div class="section-count" id="course-count" style="display:none;"></div>
+        </div>
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">No courses yet</div>
+          <div class="empty-sub">Use the button below to pull your latest courses from the LMS.</div>
+        </div>
+        <div class="courses-list" id="courses-list"></div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+      <div class="nav-item active">
+        <div class="nav-icon">📖</div>
+        <div class="nav-label">Learn</div>
+        <div class="nav-dot"></div>
+      </div>
+      <div class="nav-item"><div class="nav-icon">📊</div><div class="nav-label">Progress</div></div>
+      <div class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">Care Team</div></div>
+      <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+    </div>
+  </div>
+
+  <!-- Demo controls -->
+  <div class="demo-controls">
+    <div class="demo-label" id="demo-label">Step 1 — Load courses from LMS</div>
+    <button class="demo-btn" id="fetch-btn" onclick="fetchCourses()">
+      ⟳&nbsp; Fetch Courses from LMS
+    </button>
+  </div>
+
+  <script>
+    // ─── Clock ────────────────────────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent =
+        now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ─── State ────────────────────────────────────────────────────────────────
+    let knownIds = null; // null = never fetched
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+    function categoryColor(cat) {
+      const map = {
+        'clinical education': '#0D7C7C',
+        'lifestyle': '#2DB87A',
+        'behavioral health': '#7C5CBF',
+        'nutrition': '#2DB87A',
+        'general': '#7A8FA0',
+      };
+      return map[(cat || '').toLowerCase()] || '#0D7C7C';
+    }
+
+    const ICONS = ['💊','🥗','❤️','🧠','🚶','📋','🔬','💪','🌿','📊'];
+    function iconFor(id) { return ICONS[id % ICONS.length]; }
+
+    function showToast(html) {
+      const el = document.getElementById('toast');
+      const txt = document.getElementById('toast-text');
+      txt.innerHTML = html;
+      el.classList.remove('hiding');
+      el.style.display = 'flex';
+      clearTimeout(el._timer);
+      el._timer = setTimeout(() => {
+        el.classList.add('hiding');
+        setTimeout(() => { el.style.display = 'none'; el.classList.remove('hiding'); }, 350);
+      }, 3500);
+    }
+
+    function updateHeader(courses) {
+      const total = courses.length;
+      const pct = 0; // progress tracking is future scope
+      document.getElementById('progress-pct').textContent = pct + '%';
+      document.getElementById('progress-arc').setAttribute('stroke-dashoffset',
+        125.66 - (pct / 100) * 125.66);
+      document.getElementById('stat-title').textContent =
+        total === 0 ? 'No courses loaded yet' : `0 of ${total} courses complete`;
+      document.getElementById('stat-sub').textContent =
+        total === 0 ? 'Fetch from LMS to get started.' : "Keep going — you're building great habits.";
+      const countEl = document.getElementById('course-count');
+      if (total > 0) { countEl.textContent = total + ' courses'; countEl.style.display = ''; }
+      else { countEl.style.display = 'none'; }
+    }
+
+    function renderCard(course, isNew, delay) {
+      const color = categoryColor(course.category);
+      const icon = iconFor(course.id);
+      const tag = isNew
+        ? `<div class="card-tag" style="color:#7C5CBF;background:#F2EEFF;">New</div>`
+        : `<div class="card-tag" style="color:#7A8FA0;background:#EEF2F5;">Available</div>`;
+      const badge = isNew ? `<div class="new-badge">● New</div>` : '';
+      const desc = course.description || '';
+
+      const card = document.createElement('div');
+      card.className = 'course-card' + (isNew ? ' is-new' : '');
+      card.style.animationDelay = isNew ? '0ms' : `${delay}ms`;
+      card.innerHTML = `
+        ${badge}
+        <div class="card-top">
+          <div class="card-icon">${icon}</div>
+          <div class="card-meta">
+            <div class="card-cat" style="color:${color}">${course.category || 'General'}</div>
+            <div class="card-title">${course.title}</div>
+            <div class="card-desc">${desc}</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-stats">
+            <div class="card-stat">🎓 ${course.credits || '0'} credits</div>
+          </div>
+          ${tag}
+        </div>
+      `;
+      return card;
+    }
+
+    // ─── Fetch ────────────────────────────────────────────────────────────────
+    async function fetchCourses() {
+      const btn = document.getElementById('fetch-btn');
+      const label = document.getElementById('demo-label');
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+      btn.innerHTML = '<div class="spinner"></div> Fetching from LMS…';
+      label.textContent = 'Contacting dialogEDU API…';
+
+      try {
+        const res = await fetch('/api/courses');
+        if (!res.ok) throw new Error('API error ' + res.status);
+        const data = await res.json();
+        const courses = data.courses || [];
+
+        // Determine new courses
+        const currentIds = new Set(courses.map(c => c.id));
+        const newIds = knownIds === null
+          ? new Set()
+          : new Set([...currentIds].filter(id => !knownIds.has(id)));
+
+        // Render
+        const list = document.getElementById('courses-list');
+        const empty = document.getElementById('empty-state');
+
+        if (courses.length === 0) {
+          empty.style.display = '';
+          list.innerHTML = '';
+        } else {
+          empty.style.display = 'none';
+          // Prepend new cards, then re-render existing
+          list.innerHTML = '';
+          courses.forEach((course, i) => {
+            const isNew = newIds.has(course.id);
+            const card = renderCard(course, isNew, i * 80);
+            list.appendChild(card);
+          });
+        }
+
+        updateHeader(courses);
+
+        // Toast
+        if (knownIds === null) {
+          showToast(`<strong>dialogEDU API →</strong><br>${courses.length} course${courses.length !== 1 ? 's' : ''} synced to app`);
+        } else if (newIds.size > 0) {
+          const newCourse = courses.find(c => newIds.has(c.id));
+          showToast(`<strong>dialogEDU API →</strong><br><em>"${newCourse.title}" is now available</em>`);
+          document.getElementById('scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          showToast(`<strong>dialogEDU API →</strong><br>Already up to date`);
+        }
+
+        knownIds = currentIds;
+        label.textContent = 'Publish a new course in the LMS, then fetch again';
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('empty-state').querySelector('.empty-title').textContent = 'Could not reach the LMS';
+        document.getElementById('empty-state').querySelector('.empty-sub').textContent = 'Try fetching again.';
+        label.textContent = 'Something went wrong — try again';
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+        btn.innerHTML = '⟳&nbsp; Fetch Courses from LMS';
+      }
+    }
+  </script>
+</body>
+</html>
