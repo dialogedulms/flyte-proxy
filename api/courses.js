@@ -1,4 +1,6 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
   // Allow the demo app to call this from the browser
@@ -15,8 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get ordered list of course IDs
-    const courseIds = await kv.get('course_ids') || [];
+    const courseIds = await redis.get('course_ids') || [];
 
     if (courseIds.length === 0) {
       return res.status(200).json({ courses: [] });
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
 
     // Fetch all courses in parallel
     const courseStrings = await Promise.all(
-      courseIds.map(id => kv.get(`course:${id}`))
+      courseIds.map(id => redis.get(`course:${id}`))
     );
 
     const courses = courseStrings
