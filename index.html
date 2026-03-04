@@ -14,31 +14,47 @@
       font-family: 'DM Sans', sans-serif;
       background: linear-gradient(160deg, #1a1a2e 0%, #2d1b3d 60%, #1a2a1a 100%);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 56px 20px 48px;
-      gap: 28px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 56px 20px 48px; gap: 28px;
     }
 
     .demo-title { text-align: center; }
     .demo-title h1 { font-family: 'DM Serif Display', serif; font-size: 24px; color: white; letter-spacing: -0.01em; }
     .demo-title p { font-size: 13px; color: rgba(255,255,255,0.35); margin-top: 5px; }
 
-    /* Phone */
+    /* ── Phone shell ── */
     .phone {
-      width: 390px; height: 780px; background: #F5F8FA;
-      border-radius: 44px; box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 12px #0a0a0a;
-      display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; position: relative;
+      width: 390px; height: 780px;
+      background: #F5F8FA; border-radius: 44px;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.55), 0 0 0 12px #0a0a0a;
+      display: flex; flex-direction: column;
+      overflow: hidden; flex-shrink: 0; position: relative;
     }
 
+    /* ── Status bar ── */
     .status-bar {
       background: #0B1F3A; padding: 14px 24px 10px;
-      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0; position: relative; z-index: 10;
     }
     .status-time { font-size: 15px; font-weight: 600; color: white; letter-spacing: 0.02em; }
     .status-icons { font-size: 12px; color: white; display: flex; gap: 6px; }
+
+    /* ── Screens container ── */
+    .screens {
+      flex: 1; display: flex; overflow: hidden; position: relative;
+    }
+
+    /* ── LIST SCREEN ── */
+    .screen-list {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      flex-shrink: 0; position: absolute; top: 0; left: 0;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #F5F8FA;
+    }
+    .screen-list.pushed { transform: translateX(-100%); }
 
     .app-header { background: #0B1F3A; padding: 0 24px 20px; flex-shrink: 0; }
     .header-greeting { font-size: 13px; color: rgba(255,255,255,0.5); letter-spacing: 0.04em; text-transform: uppercase; font-weight: 500; margin-bottom: 2px; }
@@ -68,14 +84,18 @@
     .course-card {
       background: white; border-radius: 18px; padding: 16px;
       box-shadow: 0 2px 12px rgba(11,31,58,0.07); border: 1.5px solid transparent;
-      position: relative; overflow: hidden; animation: fadeSlideIn 0.4s ease both;
+      position: relative; overflow: hidden; cursor: pointer;
+      animation: fadeSlideIn 0.4s ease both;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
+    .course-card:active { transform: scale(0.98); box-shadow: 0 1px 6px rgba(11,31,58,0.07); }
     .course-card.is-new { border-color: #7C5CBF; animation: springIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
-    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes springIn { from { opacity: 0; transform: translateY(-16px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeSlideIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes springIn { from { opacity:0; transform:translateY(-16px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
 
     .new-badge { position: absolute; top: 12px; right: 12px; background: #7C5CBF; color: white; font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 20px; letter-spacing: 0.06em; text-transform: uppercase; animation: pulse 2s infinite; }
     .card-top { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
@@ -90,6 +110,90 @@
     .card-stat { font-size: 11px; color: #7A8FA0; }
     .card-tag { font-size: 10px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
 
+    /* ── SHOW SCREEN ── */
+    .screen-show {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      position: absolute; top: 0; left: 100%;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #F5F8FA; overflow: hidden;
+    }
+    .screen-show.visible { transform: translateX(-100%); }
+
+    /* Show screen nav bar */
+    .show-navbar {
+      background: white; padding: 12px 20px;
+      display: flex; align-items: center; gap: 12px;
+      border-bottom: 1px solid #EEF2F5; flex-shrink: 0;
+    }
+    .back-btn {
+      background: #EEF2F5; border: none; border-radius: 20px;
+      padding: 6px 14px 6px 10px; font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600; color: #0D7C7C;
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+    }
+    .back-btn:active { background: #C8EFEF; }
+    .show-navbar-title { font-size: 13px; font-weight: 600; color: #0B1F3A; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Show scroll */
+    .show-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
+    .show-scroll::-webkit-scrollbar { display: none; }
+
+    /* Hero */
+    .show-hero {
+      padding: 24px 20px 20px;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      background: white; border-bottom: 1px solid #EEF2F5;
+    }
+    .show-hero-icon {
+      width: 80px; height: 80px; border-radius: 24px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 38px; margin-bottom: 16px;
+    }
+    .show-hero-cat { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+    .show-hero-title { font-family: 'DM Serif Display', serif; font-size: 22px; color: #0B1F3A; line-height: 1.25; margin-bottom: 12px; }
+    .show-hero-meta { display: flex; gap: 16px; justify-content: center; }
+    .show-meta-pill {
+      background: #F5F8FA; border: 1px solid #EEF2F5;
+      border-radius: 20px; padding: 5px 12px;
+      font-size: 11px; font-weight: 500; color: #7A8FA0;
+      display: flex; align-items: center; gap: 5px;
+    }
+
+    /* Description */
+    .show-section { padding: 20px 20px 0; }
+    .show-section-title { font-size: 13px; font-weight: 700; color: #0B1F3A; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
+    .show-description { font-size: 13px; color: #3D5166; line-height: 1.7; }
+    .show-description p { margin: 0; }
+
+    /* Modules */
+    .modules-list { display: flex; flex-direction: column; gap: 8px; padding-bottom: 4px; }
+    .module-row {
+      background: white; border-radius: 14px; padding: 13px 16px;
+      display: flex; align-items: center; gap: 12px;
+      box-shadow: 0 1px 6px rgba(11,31,58,0.06);
+    }
+    .module-num {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .module-info { flex: 1; min-width: 0; }
+    .module-title { font-size: 13px; font-weight: 600; color: #0B1F3A; margin-bottom: 2px; }
+    .module-sub { font-size: 11px; color: #7A8FA0; }
+    .module-status { font-size: 16px; flex-shrink: 0; }
+
+    /* CTA */
+    .show-cta { padding: 20px; flex-shrink: 0; }
+    .enroll-btn {
+      width: 100%; padding: 16px; border: none; border-radius: 18px;
+      font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 700;
+      color: white; cursor: pointer; letter-spacing: 0.01em;
+      transition: opacity 0.2s ease;
+    }
+    .enroll-btn:active { opacity: 0.85; }
+
+    /* Bottom nav */
     .bottom-nav { background: white; border-top: 1px solid #EEF2F5; padding: 10px 0 18px; display: flex; justify-content: space-around; flex-shrink: 0; }
     .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 4px 16px; cursor: pointer; }
     .nav-icon { font-size: 20px; line-height: 1; }
@@ -98,10 +202,11 @@
     .nav-item:not(.active) .nav-icon, .nav-item:not(.active) .nav-label { color: #C5D0DA; }
     .nav-dot { width: 4px; height: 4px; background: #0D7C7C; border-radius: 50%; margin: 0 auto; }
 
-    .toast { position: absolute; top: 148px; left: 16px; right: 16px; background: #0B1F3A; border: 1px solid rgba(255,255,255,0.12); border-left: 3px solid #1A9E9E; border-radius: 12px; padding: 10px 14px; z-index: 50; display: flex; align-items: center; gap: 10px; animation: toastIn 0.3s ease forwards; }
+    /* Toast */
+    .toast { position: absolute; top: 56px; left: 16px; right: 16px; background: #0B1F3A; border: 1px solid rgba(255,255,255,0.12); border-left: 3px solid #1A9E9E; border-radius: 12px; padding: 10px 14px; z-index: 100; display: flex; align-items: center; gap: 10px; animation: toastIn 0.3s ease forwards; }
     .toast.hiding { animation: toastOut 0.3s ease forwards; }
-    @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes toastOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-8px); } }
+    @keyframes toastIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes toastOut { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-8px)} }
     .toast-dot { width: 8px; height: 8px; background: #1A9E9E; border-radius: 50%; flex-shrink: 0; animation: pulse 1s infinite; }
     .toast-text { font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5; }
     .toast-text strong { color: white; font-weight: 600; }
@@ -116,21 +221,10 @@
     .demo-btn.loading { background: #3D5166; box-shadow: none; }
     .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 
-    /* Admin panel */
-    .admin-toggle {
-      font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.25);
-      text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer;
-      border: none; background: none; font-family: 'DM Sans', sans-serif;
-      text-decoration: underline; padding: 4px;
-    }
+    /* Admin */
+    .admin-toggle { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; border: none; background: none; font-family: 'DM Sans', sans-serif; text-decoration: underline; padding: 4px; }
     .admin-toggle:hover { color: rgba(255,255,255,0.5); }
-
-    .admin-panel {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 16px; padding: 16px 20px;
-      width: 390px; display: none;
-    }
+    .admin-panel { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 16px 20px; width: 390px; display: none; }
     .admin-panel.open { display: block; }
     .admin-panel h3 { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
     .admin-course-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
@@ -150,60 +244,104 @@
   </div>
 
   <div class="phone">
+    <!-- Status bar -->
     <div class="status-bar">
       <span class="status-time" id="clock">--:--</span>
       <div class="status-icons"><span>●●●</span><span>WiFi</span><span>🔋</span></div>
     </div>
 
-    <div class="app-header">
-      <div class="header-greeting">Good morning</div>
-      <div class="header-name">Your Learning Path</div>
-      <div class="header-stats">
-        <div class="stat-ring-wrap">
-          <svg width="48" height="48" viewBox="0 0 48 48">
-            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
-            <circle cx="24" cy="24" r="20" fill="none" stroke="#1A9E9E" stroke-width="4"
-              stroke-dasharray="125.66" stroke-dashoffset="125.66" stroke-linecap="round" id="progress-arc"/>
-          </svg>
-          <div class="stat-ring-label" id="progress-pct">0%</div>
-        </div>
-        <div class="stat-text">
-          <h4 id="stat-title">No courses loaded yet</h4>
-          <p id="stat-sub">Fetch from LMS to get started.</p>
-        </div>
-      </div>
-    </div>
-
+    <!-- Toast -->
     <div class="toast" id="toast" style="display:none;">
       <div class="toast-dot"></div>
       <div class="toast-text" id="toast-text"></div>
     </div>
 
-    <div class="scroll-area" id="scroll-area">
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">All Courses</div>
-          <div class="section-count" id="course-count" style="display:none;"></div>
-        </div>
-        <div id="empty-state" class="empty-state">
-          <div class="empty-icon">📭</div>
-          <div class="empty-title" id="empty-title">No courses yet</div>
-          <div class="empty-sub" id="empty-sub">Use the button below to pull your latest courses from the LMS.</div>
-        </div>
-        <div class="courses-list" id="courses-list"></div>
-      </div>
-    </div>
+    <!-- Screens -->
+    <div class="screens">
 
-    <div class="bottom-nav">
-      <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
-      <div class="nav-item active">
-        <div class="nav-icon">📖</div><div class="nav-label">Learn</div><div class="nav-dot"></div>
+      <!-- LIST SCREEN -->
+      <div class="screen-list" id="screen-list">
+        <div class="app-header">
+          <div class="header-greeting">Good morning</div>
+          <div class="header-name">Your Learning Path</div>
+          <div class="header-stats">
+            <div class="stat-ring-wrap">
+              <svg width="48" height="48" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+                <circle cx="24" cy="24" r="20" fill="none" stroke="#1A9E9E" stroke-width="4"
+                  stroke-dasharray="125.66" stroke-dashoffset="125.66" stroke-linecap="round" id="progress-arc"/>
+              </svg>
+              <div class="stat-ring-label" id="progress-pct">0%</div>
+            </div>
+            <div class="stat-text">
+              <h4 id="stat-title">No courses loaded yet</h4>
+              <p id="stat-sub">Fetch from LMS to get started.</p>
+            </div>
+          </div>
+        </div>
+        <div class="scroll-area" id="scroll-area">
+          <div class="section">
+            <div class="section-header">
+              <div class="section-title">All Courses</div>
+              <div class="section-count" id="course-count" style="display:none;"></div>
+            </div>
+            <div id="empty-state" class="empty-state">
+              <div class="empty-icon">📭</div>
+              <div class="empty-title" id="empty-title">No courses yet</div>
+              <div class="empty-sub" id="empty-sub">Use the button below to pull your latest courses from the LMS.</div>
+            </div>
+            <div class="courses-list" id="courses-list"></div>
+          </div>
+        </div>
+        <div class="bottom-nav">
+          <div class="nav-item"><div class="nav-icon">🏠</div><div class="nav-label">Home</div></div>
+          <div class="nav-item active"><div class="nav-icon">📖</div><div class="nav-label">Learn</div><div class="nav-dot"></div></div>
+          <div class="nav-item"><div class="nav-icon">📊</div><div class="nav-label">Progress</div></div>
+          <div class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">Care Team</div></div>
+          <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
+        </div>
       </div>
-      <div class="nav-item"><div class="nav-icon">📊</div><div class="nav-label">Progress</div></div>
-      <div class="nav-item"><div class="nav-icon">💬</div><div class="nav-label">Care Team</div></div>
-      <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">Profile</div></div>
-    </div>
-  </div>
+
+      <!-- SHOW SCREEN -->
+      <div class="screen-show" id="screen-show">
+        <div class="show-navbar">
+          <button class="back-btn" onclick="goBack()">← Learn</button>
+          <div class="show-navbar-title" id="show-navbar-title"></div>
+        </div>
+        <div class="show-scroll">
+          <!-- Hero -->
+          <div class="show-hero">
+            <div class="show-hero-icon" id="show-icon"></div>
+            <div class="show-hero-cat" id="show-cat"></div>
+            <div class="show-hero-title" id="show-title"></div>
+            <div class="show-hero-meta">
+              <div class="show-meta-pill">🎓 <span id="show-credits"></span></div>
+              <div class="show-meta-pill">📅 <span id="show-date"></span></div>
+              <div class="show-meta-pill">📖 <span id="show-modules"></span></div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="show-section" style="margin-top:16px;">
+            <div class="show-section-title">About this course</div>
+            <div class="show-description" id="show-description"></div>
+          </div>
+
+          <!-- Modules -->
+          <div class="show-section" style="margin-top:20px; padding-bottom: 8px;">
+            <div class="show-section-title">Course Modules</div>
+            <div class="modules-list" id="show-modules-list"></div>
+          </div>
+        </div>
+
+        <!-- Enroll CTA -->
+        <div class="show-cta">
+          <button class="enroll-btn" id="enroll-btn">Enroll in This Course</button>
+        </div>
+      </div>
+
+    </div><!-- /screens -->
+  </div><!-- /phone -->
 
   <!-- Demo controls -->
   <div class="demo-controls">
@@ -221,24 +359,33 @@
   </div>
 
   <script>
-    // Clock
+    // ── Clock ──────────────────────────────────────────────────────
     function updateClock() {
       document.getElementById('clock').textContent =
-        new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+        new Date().toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
     }
     updateClock(); setInterval(updateClock, 1000);
 
-    // State
+    // ── State ──────────────────────────────────────────────────────
     let knownIds = null;
     let cachedCourses = [];
 
-    // Helpers
+    // ── Helpers ────────────────────────────────────────────────────
     function categoryColor(cat) {
       const map = { 'clinical education':'#0D7C7C','lifestyle':'#2DB87A','behavioral health':'#7C5CBF','nutrition':'#2DB87A','general':'#7A8FA0' };
       return map[(cat||'').toLowerCase()] || '#0D7C7C';
     }
     const ICONS = ['💊','🥗','❤️','🧠','🚶','📋','🔬','💪','🌿','📊'];
     function iconFor(id) { return ICONS[id % ICONS.length]; }
+
+    // Simulated modules per course (demo purposes)
+    const MODULE_TEMPLATES = [
+      ['Introduction & Overview','What to expect from this course'],
+      ['Core Concepts','Foundational knowledge and key terms'],
+      ['Clinical Application','Applying concepts to real-world scenarios'],
+      ['Best Practices','Evidence-based guidelines and recommendations'],
+      ['Assessment & Next Steps','Knowledge check and action planning'],
+    ];
 
     function showToast(html) {
       const el = document.getElementById('toast');
@@ -254,7 +401,7 @@
     function updateHeader(courses) {
       const total = courses.length;
       document.getElementById('progress-pct').textContent = '0%';
-      document.getElementById('progress-arc').setAttribute('stroke-dashoffset', '125.66');
+      document.getElementById('progress-arc').setAttribute('stroke-dashoffset','125.66');
       document.getElementById('stat-title').textContent = total === 0 ? 'No courses loaded yet' : `0 of ${total} courses complete`;
       document.getElementById('stat-sub').textContent = total === 0 ? 'Fetch from LMS to get started.' : "Keep going — you're building great habits.";
       const countEl = document.getElementById('course-count');
@@ -286,20 +433,68 @@
           <div class="card-stats"><div class="card-stat">🎓 ${course.credits || '0'} credits</div></div>
           ${tag}
         </div>`;
+      card.addEventListener('click', () => openCourse(course));
       return card;
     }
 
-    function renderAdminList(courses) {
-      const el = document.getElementById('admin-list');
-      if (!courses.length) { el.innerHTML = '<div class="admin-empty">No courses in store yet.</div>'; return; }
-      el.innerHTML = courses.map(c => `
-        <div class="admin-course-row" id="admin-row-${c.id}">
-          <div class="admin-course-name">${c.title}</div>
-          <button class="delete-btn" onclick="deleteCourse(${c.id}, '${c.title.replace(/'/g,"\\'")}')">Remove</button>
-        </div>`).join('');
+    // ── Navigation ─────────────────────────────────────────────────
+    function openCourse(course) {
+      const color = categoryColor(course.category);
+      const icon = iconFor(course.id);
+      const moduleCount = 3 + (course.id % 3); // 3–5 modules based on id
+
+      // Populate hero
+      const iconEl = document.getElementById('show-icon');
+      iconEl.textContent = icon;
+      iconEl.style.background = color + '18';
+      document.getElementById('show-cat').textContent = course.category || 'General';
+      document.getElementById('show-cat').style.color = color;
+      document.getElementById('show-title').textContent = course.title;
+      document.getElementById('show-navbar-title').textContent = course.title;
+
+      // Meta
+      document.getElementById('show-credits').textContent = (course.credits || '0') + ' credits';
+      const added = new Date(course.created_at);
+      document.getElementById('show-date').textContent = added.toLocaleDateString('en-US', { month:'short', year:'numeric' });
+      document.getElementById('show-modules').textContent = moduleCount + ' modules';
+
+      // Description
+      document.getElementById('show-description').innerHTML = course.description || '<p>No description provided.</p>';
+
+      // Modules
+      const list = document.getElementById('show-modules-list');
+      list.innerHTML = '';
+      for (let i = 0; i < moduleCount; i++) {
+        const [title, sub] = MODULE_TEMPLATES[i] || [`Module ${i+1}`, ''];
+        const row = document.createElement('div');
+        row.className = 'module-row';
+        row.innerHTML = `
+          <div class="module-num" style="background:${color}18;color:${color}">${i+1}</div>
+          <div class="module-info">
+            <div class="module-title">${title}</div>
+            <div class="module-sub">${sub}</div>
+          </div>
+          <div class="module-status">${i === 0 ? '▶️' : '🔒'}</div>`;
+        list.appendChild(row);
+      }
+
+      // CTA button
+      const btn = document.getElementById('enroll-btn');
+      btn.style.background = `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`;
+      btn.textContent = 'Enroll in This Course';
+
+      // Slide in
+      document.getElementById('screen-list').classList.add('pushed');
+      document.getElementById('screen-show').classList.add('visible');
+      document.getElementById('screen-show').querySelector('.show-scroll').scrollTop = 0;
     }
 
-    // Fetch courses
+    function goBack() {
+      document.getElementById('screen-list').classList.remove('pushed');
+      document.getElementById('screen-show').classList.remove('visible');
+    }
+
+    // ── Fetch courses ──────────────────────────────────────────────
     async function fetchCourses() {
       const btn = document.getElementById('fetch-btn');
       const label = document.getElementById('demo-label');
@@ -324,9 +519,7 @@
           empty.style.display = ''; list.innerHTML = '';
         } else {
           empty.style.display = 'none'; list.innerHTML = '';
-          courses.forEach((course, i) => {
-            list.appendChild(renderCard(course, newIds.has(course.id), i * 80));
-          });
+          courses.forEach((course, i) => list.appendChild(renderCard(course, newIds.has(course.id), i * 80)));
         }
 
         updateHeader(courses);
@@ -337,13 +530,13 @@
         } else if (newIds.size > 0) {
           const nc = courses.find(c => newIds.has(c.id));
           showToast(`<strong>dialogEDU API →</strong><br><em>"${nc.title}" is now available</em>`);
-          document.getElementById('scroll-area').scrollTo({ top: 0, behavior: 'smooth' });
+          document.getElementById('scroll-area').scrollTo({ top:0, behavior:'smooth' });
         } else {
           showToast(`<strong>dialogEDU API →</strong><br>Already up to date`);
         }
 
         knownIds = currentIds;
-        label.textContent = 'Publish a new course in the LMS, then fetch again';
+        label.textContent = 'Tap a course to preview it, or publish a new one in the LMS';
 
       } catch (err) {
         console.error(err);
@@ -356,33 +549,33 @@
       }
     }
 
-    // Delete a course
-    async function deleteCourse(id, title) {
+    // ── Admin ──────────────────────────────────────────────────────
+    function renderAdminList(courses) {
+      const el = document.getElementById('admin-list');
+      if (!courses.length) { el.innerHTML = '<div class="admin-empty">No courses in store yet.</div>'; return; }
+      el.innerHTML = courses.map(c => `
+        <div class="admin-course-row" id="admin-row-${c.id}">
+          <div class="admin-course-name">${c.title}</div>
+          <button class="delete-btn" onclick="deleteCourse(${c.id})">Remove</button>
+        </div>`).join('');
+    }
+
+    async function deleteCourse(id) {
       const btn = document.querySelector(`#admin-row-${id} .delete-btn`);
       if (btn) { btn.disabled = true; btn.textContent = '…'; }
-
       try {
-        const res = await fetch(`/api/delete-course?id=${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/delete-course?id=${id}`, { method:'DELETE' });
         if (!res.ok) throw new Error('Delete failed');
-
-        // Remove from UI immediately
-        const row = document.getElementById(`admin-row-${id}`);
-        if (row) row.remove();
-
-        // Update cached state so next fetch treats it as new if re-published
         cachedCourses = cachedCourses.filter(c => c.id !== id);
         if (knownIds) knownIds.delete(id);
-
-        // Remove card from app view
         await fetchCourses();
-
+        if (document.getElementById('screen-show').classList.contains('visible')) goBack();
       } catch (err) {
         console.error(err);
         if (btn) { btn.disabled = false; btn.textContent = 'Remove'; }
       }
     }
 
-    // Toggle admin panel
     function toggleAdmin() {
       const panel = document.getElementById('admin-panel');
       panel.classList.toggle('open');
