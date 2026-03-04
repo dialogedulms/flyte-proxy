@@ -1,4 +1,6 @@
-import { kv } from '@vercel/kv';
+import { Redis } from '@upstash/redis';
+
+const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
   // Only accept POST
@@ -32,13 +34,13 @@ export default async function handler(req, res) {
     };
 
     // Store in KV using course ID as key
-    await kv.set(`course:${course.id}`, JSON.stringify(storedCourse));
+    await redis.set(`course:${course.id}`, JSON.stringify(storedCourse));
 
-    // Maintain a list of all course IDs
-    const existingIds = await kv.get('course_ids') || [];
+    // Maintain ordered list of course IDs (newest first)
+    const existingIds = await redis.get('course_ids') || [];
     if (!existingIds.includes(course.id)) {
-      existingIds.unshift(course.id); // newest first
-      await kv.set('course_ids', existingIds);
+      existingIds.unshift(course.id);
+      await redis.set('course_ids', existingIds);
     }
 
     console.log(`Course synced: ${course.id} — "${course.title}"`);
