@@ -2,8 +2,11 @@ import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
 
+const DIALOGEDU_API = 'https://world-wide-university.dialogedu.com/api/v1';
+const SITE_ID = '1923';
+
 export default async function handler(req, res) {
-  // CORS — must be set before anything else
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', '*');
@@ -17,20 +20,50 @@ export default async function handler(req, res) {
   }
 
   try {
-    const courseIds = await redis.get('course_ids') || [];
-
-    if (courseIds.length === 0) {
-      return res.status(200).json({ courses: [] });
+    const token = process.env.DIALOGEDU_API_TOKEN;
+    if (!token) {
+      return res.status(500).json({ error: 'DIALOGEDU_API_TOKEN not configured' });
     }
 
-    // Fetch all courses in parallel
-    const courseStrings = await Promise.all(
-      courseIds.map(id => redis.get(`course:${id}`))
-    );
+    // Fetch courses directly from dialogEDU API
+    const apiRes = await fetch(`${DIALOGEDU_API}/sites/${SITE_ID}/courses`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
 
-    const courses = courseStrings
-      .filter(Boolean)
-      .map(c => typeof c === 'string' ? JSON.parse(c) : c);
+    if (!apiRes.ok) {
+      console.error('dialogEDU API error:', apiRes.status, await apiRes.text());
+      return res.status(502).json({ error: 'Failed to fetch from dialogEDU API' });
+    }
+
+    const apiData = await apiRes.json();
+    const apiCourses = apiData.courses || [];
+
+    // Sync each course into Redis and build response
+    const courses = [];
+    const courseIds = [];
+
+    for (const course of apiCourses) {
+      const storedCourse = {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        category: course.program_title || 'General',
+        tags: [],
+        image: course.cover_image,
+        url: `https://world-wide-university.dialogedu.com/flyte-health-demo/courses/${course.slug}`,
+        credits: '0.0',
+        created_at: course.created_at || new Date().toISOString(),
+        updated_at: course.updated_at || new Date().toISOString(),
+        synced_at: new Date().toISOString(),
+      };
+
+      await redis.set(`course:${course.id}`, JSON.stringify(storedCourse));
+      courseIds.push(course.id);
+      courses.push(storedCourse);
+    }
+
+    // Update the course_ids index
+    await redis.set('course_ids', courseIds);
 
     return res.status(200).json({ courses });
 
