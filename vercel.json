@@ -2,6 +2,7 @@
   "rewrites": [
     { "source": "/api/webhook", "destination": "/api/webhook.js" },
     { "source": "/api/courses", "destination": "/api/courses.js" },
-    { "source": "/api/delete-course", "destination": "/api/delete-course.js" }
+    { "source": "/api/delete-course", "destination": "/api/delete-course.js" },
+    { "source": "/api/units", "destination": "/api/units.js" }
   ]
 }

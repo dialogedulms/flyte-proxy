@@ -439,10 +439,9 @@
     }
 
     // ── Navigation ─────────────────────────────────────────────────
-    function openCourse(course) {
+    async function openCourse(course) {
       const color = categoryColor(course.category);
       const icon = iconFor(course.id);
-      const moduleCount = 3 + (course.id % 3); // 3–5 modules based on id
 
       // Populate hero
       const iconEl = document.getElementById('show-icon');
@@ -457,27 +456,14 @@
       document.getElementById('show-credits').textContent = (course.credits || '0') + ' credits';
       const added = new Date(course.created_at);
       document.getElementById('show-date').textContent = added.toLocaleDateString('en-US', { month:'short', year:'numeric' });
-      document.getElementById('show-modules').textContent = moduleCount + ' modules';
 
       // Description
       document.getElementById('show-description').innerHTML = course.description || '<p>No description provided.</p>';
 
-      // Modules
+      // Show loading state for modules
       const list = document.getElementById('show-modules-list');
-      list.innerHTML = '';
-      for (let i = 0; i < moduleCount; i++) {
-        const [title, sub] = MODULE_TEMPLATES[i] || [`Module ${i+1}`, ''];
-        const row = document.createElement('div');
-        row.className = 'module-row';
-        row.innerHTML = `
-          <div class="module-num" style="background:${color}18;color:${color}">${i+1}</div>
-          <div class="module-info">
-            <div class="module-title">${title}</div>
-            <div class="module-sub">${sub}</div>
-          </div>
-          <div class="module-status">${i === 0 ? '▶️' : '🔒'}</div>`;
-        list.appendChild(row);
-      }
+      list.innerHTML = '<div style="text-align:center;padding:20px;color:#7A8FA0;font-size:12px;">Loading modules...</div>';
+      document.getElementById('show-modules').textContent = '…';
 
       // CTA button
       const btn = document.getElementById('enroll-btn');
@@ -488,6 +474,37 @@
       document.getElementById('screen-list').classList.add('pushed');
       document.getElementById('screen-show').classList.add('visible');
       document.getElementById('screen-show').querySelector('.show-scroll').scrollTop = 0;
+
+      // Fetch real units from API
+      try {
+        const res = await fetch(`/api/units?course_id=${course.id}`);
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        const units = data.units || [];
+
+        document.getElementById('show-modules').textContent = units.length + ' module' + (units.length !== 1 ? 's' : '');
+
+        list.innerHTML = '';
+        if (units.length === 0) {
+          list.innerHTML = '<div style="text-align:center;padding:20px;color:#7A8FA0;font-size:12px;">No modules yet</div>';
+        } else {
+          units.forEach((unit, i) => {
+            const row = document.createElement('div');
+            row.className = 'module-row';
+            row.innerHTML = `
+              <div class="module-num" style="background:${color}18;color:${color}">${unit.position}</div>
+              <div class="module-info">
+                <div class="module-title">${unit.title.trim()}</div>
+                <div class="module-sub">${unit.description || ''}</div>
+              </div>
+              <div class="module-status">${i === 0 ? '▶️' : (unit.is_sequential ? '🔒' : '▶️')}</div>`;
+            list.appendChild(row);
+          });
+        }
+      } catch (err) {
+        console.error('Units fetch error:', err);
+        list.innerHTML = '<div style="text-align:center;padding:20px;color:#7A8FA0;font-size:12px;">Could not load modules</div>';
+      }
     }
 
     function goBack() {
