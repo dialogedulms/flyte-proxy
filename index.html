@@ -507,8 +507,8 @@
         const res = await fetch('/api/courses');
         if (!res.ok) throw new Error('API error ' + res.status);
         const data = await res.json();
-        const allCourses = data.courses || [];
-        const courses = allCourses.filter(c => !hiddenIds.has(c.id));
+        hiddenIds.clear();
+        const courses = data.courses || [];
         cachedCourses = courses;
 
         const currentIds = new Set(courses.map(c => c.id));
