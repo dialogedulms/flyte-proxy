@@ -354,7 +354,7 @@
 
   <!-- Admin panel -->
   <div class="admin-panel" id="admin-panel">
-    <h3>Courses in Redis — delete to reset</h3>
+    <h3>Hide courses for demo reset</h3>
     <div id="admin-list"><div class="admin-empty">No courses in store yet.</div></div>
   </div>
 
@@ -369,6 +369,7 @@
     // ── State ──────────────────────────────────────────────────────
     let knownIds = null;
     let cachedCourses = [];
+    let hiddenIds = new Set();
 
     // ── Helpers ────────────────────────────────────────────────────
     function categoryColor(cat) {
@@ -506,7 +507,8 @@
         const res = await fetch('/api/courses');
         if (!res.ok) throw new Error('API error ' + res.status);
         const data = await res.json();
-        const courses = data.courses || [];
+        const allCourses = data.courses || [];
+        const courses = allCourses.filter(c => !hiddenIds.has(c.id));
         cachedCourses = courses;
 
         const currentIds = new Set(courses.map(c => c.id));
@@ -560,20 +562,24 @@
         </div>`).join('');
     }
 
-    async function deleteCourse(id) {
-      const btn = document.querySelector(`#admin-row-${id} .delete-btn`);
-      if (btn) { btn.disabled = true; btn.textContent = '…'; }
-      try {
-        const res = await fetch(`/api/delete-course?id=${id}`, { method:'DELETE' });
-        if (!res.ok) throw new Error('Delete failed');
-        cachedCourses = cachedCourses.filter(c => c.id !== id);
-        if (knownIds) knownIds.delete(id);
-        await fetchCourses();
-        if (document.getElementById('screen-show').classList.contains('visible')) goBack();
-      } catch (err) {
-        console.error(err);
-        if (btn) { btn.disabled = false; btn.textContent = 'Remove'; }
+    function deleteCourse(id) {
+      hiddenIds.add(id);
+      cachedCourses = cachedCourses.filter(c => c.id !== id);
+      if (knownIds) knownIds.delete(id);
+
+      // Re-render UI
+      const list = document.getElementById('courses-list');
+      const empty = document.getElementById('empty-state');
+      if (cachedCourses.length === 0) {
+        empty.style.display = ''; list.innerHTML = '';
+      } else {
+        empty.style.display = 'none'; list.innerHTML = '';
+        cachedCourses.forEach((course, i) => list.appendChild(renderCard(course, false, i * 80)));
       }
+      updateHeader(cachedCourses);
+      renderAdminList(cachedCourses);
+      if (document.getElementById('screen-show').classList.contains('visible')) goBack();
+      showToast(`<strong>Removed</strong><br>Fetch again to restore`);
     }
 
     function toggleAdmin() {
